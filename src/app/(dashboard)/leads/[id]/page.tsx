@@ -13,6 +13,8 @@ import {
   Calendar,
   Building,
   Edit,
+  Briefcase,
+  DollarSign,
 } from "lucide-react";
 import Link from "next/link";
 import { LeadStatusSelect } from "@/components/dashboard/lead-status-select";
@@ -240,6 +242,80 @@ export default async function LeadDetailPage({ params }: Props) {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Services & Pricing */}
+              {(lead.servicesOffered || lead.pricingInfo) && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Briefcase className="h-5 w-5" />
+                      Services & Pricing
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {lead.servicesOffered && (() => {
+                      try {
+                        const services = JSON.parse(lead.servicesOffered);
+                        if (services.length > 0) {
+                          return (
+                            <div>
+                              <p className="text-sm font-medium mb-2">Services Offered</p>
+                              <div className="space-y-2">
+                                {services.map((service: { name: string; description?: string; price?: string; duration?: string }, i: number) => (
+                                  <div key={i} className="flex justify-between items-start p-2 bg-gray-50 rounded">
+                                    <div>
+                                      <span className="font-medium">{service.name}</span>
+                                      {service.description && (
+                                        <p className="text-sm text-muted-foreground">{service.description}</p>
+                                      )}
+                                      {service.duration && (
+                                        <span className="text-xs text-muted-foreground">({service.duration})</span>
+                                      )}
+                                    </div>
+                                    {service.price && (
+                                      <span className="text-green-600 font-medium">{service.price}</span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        }
+                      } catch { return null; }
+                      return null;
+                    })()}
+                    {lead.pricingInfo && (() => {
+                      try {
+                        const pricing = JSON.parse(lead.pricingInfo);
+                        if (pricing.hasPublicPricing && pricing.items?.length > 0) {
+                          return (
+                            <div>
+                              <p className="text-sm font-medium mb-2 flex items-center gap-2">
+                                <DollarSign className="h-4 w-4" />
+                                Pricing
+                                {pricing.priceRange && (
+                                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                                    {pricing.priceRange}
+                                  </span>
+                                )}
+                              </p>
+                              <div className="space-y-1">
+                                {pricing.items.map((item: { service: string; price: string }, i: number) => (
+                                  <div key={i} className="flex justify-between text-sm p-2 bg-gray-50 rounded">
+                                    <span>{item.service}</span>
+                                    <span className="text-green-600 font-medium">{item.price}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        }
+                      } catch { return null; }
+                      return null;
+                    })()}
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Notes */}
               {lead.notes && (
