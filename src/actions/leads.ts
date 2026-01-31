@@ -49,14 +49,25 @@ function calculateScore(data: LeadFormData): number {
     score += 15;
   }
 
-  // High-value verticals
+  // High-value verticals (appointment-heavy businesses)
   const highValueVerticals: BusinessVertical[] = [
+    "DENTAL",
+    "CHIROPRACTIC",
+    "PHYSICAL_THERAPY",
+    "DAY_SPA_MASSAGE",
+    "MEDSPA",
+    "HAIR_SALON_BARBERSHOP",
+    "NAIL_SALON",
+    "ESTHETICIAN_SKINCARE",
+    "VETERINARIAN",
+    "MENTAL_HEALTH",
+    "PERSONAL_TRAINERS",
+    "YOGA",
+    "MARTIAL_ARTS",
+    "DANCE_STUDIOS",
     "PLUMBING",
     "HVAC",
-    "ROOFING",
     "ELECTRICAL",
-    "DENTAL",
-    "MEDICAL",
   ];
   if (highValueVerticals.includes(data.vertical)) {
     score += 10;
