@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Phone, Mail, ExternalLink } from "lucide-react";
+import { Plus, Phone, Mail, ExternalLink, Globe } from "lucide-react";
 import Link from "next/link";
 import { LeadFilters } from "@/components/dashboard/lead-filters";
 import { LeadStatus, LeadTier, BusinessVertical } from "@prisma/client";
@@ -130,12 +130,17 @@ export default async function LeadsPage(props: { searchParams: SearchParams }) {
                 {leads.map((lead) => (
                   <TableRow key={lead.id}>
                     <TableCell>
-                      <Link
-                        href={`/leads/${lead.id}`}
-                        className="font-medium hover:underline"
-                      >
-                        {lead.businessName}
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/leads/${lead.id}`}
+                          className="font-medium hover:underline"
+                        >
+                          {lead.businessName}
+                        </Link>
+                        {lead.website && (
+                          <Globe className="h-4 w-4 text-blue-500" title="Has website" />
+                        )}
+                      </div>
                       {lead.contactName && (
                         <p className="text-sm text-muted-foreground">
                           {lead.contactName}
