@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Lead status enum
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  DEMO_SCHEDULED
+  DEMO_COMPLETED
+  PROPOSAL_SENT
+  NEGOTIATING
+  CLOSED_WON
+  CLOSED_LOST
+}
+
+// Lead tier based on scoring
+enum LeadTier {
+  TIER_1  // Prime target: established, low reviews, no booking tool
+  TIER_2  // Good prospect: meets 2 of 3 criteria
+  TIER_3  // Potential: meets 1 criterion
+  TIER_4  // Low priority
+}
+
+// Business vertical/industry
+enum BusinessVertical {
+  PLUMBING
+  HVAC
+  ROOFING
+  ELECTRICAL
+  LANDSCAPING
+  CLEANING
+  AUTO_REPAIR
+  SALON_SPA
+  DENTAL
+  MEDICAL
+  LEGAL
+  ACCOUNTING
+  REAL_ESTATE
+  RESTAURANT
+  OTHER
+}
+
+model Lead {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Basic Info
+  businessName    String
+  contactName     String?
+  email           String?
+  phone           String?
+  website         String?
+  address         String?
+  city            String?
+  state           String?
+  zipCode         String?
+
+  // Business Details
+  vertical        BusinessVertical @default(OTHER)
+  yearsInBusiness Int?
+  employeeCount   Int?
+
+  // Google/Review Data
+  googlePlaceId   String?   @unique
+  googleRating    Float?
+  reviewCount     Int?
+  reviewVelocity  Float?    // reviews per month
+  lastReviewDate  DateTime?
+
+  // Tech Stack Analysis
+  hasBookingSoftware Boolean @default(false)
+  currentBookingTool String?
+  websiteAge         Int?    // years
+
+  // Scoring
+  tier            LeadTier   @default(TIER_4)
+  score           Int        @default(0)  // 0-100
+  valueGapReport  String?    @db.Text
+
+  // Sales Status
+  status          LeadStatus @default(NEW)
+  assignedTo      String?
+  lastContactDate DateTime?
+  nextFollowUp    DateTime?
+  notes           String?    @db.Text
+
+  // Competitor Analysis
+  competitorReviewAvg Float?
+  competitorCount     Int?
+
+  // Activity tracking
+  activities      Activity[]
+  calls           Call[]
+
+  @@index([status])
+  @@index([tier])
+  @@index([vertical])
+  @@index([city, state])
+}
+
+model Activity {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  type      String   // EMAIL, CALL, SMS, NOTE, STATUS_CHANGE
+  subject   String?
+  content   String?  @db.Text
+  outcome   String?
+
+  @@index([leadId])
+  @@index([createdAt])
+}
+
+model Call {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  direction   String   // INBOUND, OUTBOUND
+  duration    Int?     // seconds
+  recording   String?  // URL to recording
+  outcome     String?  // ANSWERED, VOICEMAIL, NO_ANSWER, BUSY
+  notes       String?  @db.Text
+  telnyxCallId String?
+
+  @@index([leadId])
+  @@index([createdAt])
+}
+
+model User {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  email     String   @unique
+  name      String?
+  role      String   @default("SALES")  // ADMIN, SALES
+}
+
+model Settings {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+}
