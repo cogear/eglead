@@ -19,6 +19,7 @@ import { LeadStatusSelect } from "@/components/dashboard/lead-status-select";
 import { DeleteLeadButton } from "@/components/dashboard/delete-lead-button";
 import { ActivityList } from "@/components/dashboard/activity-list";
 import { AddActivityForm } from "@/components/dashboard/add-activity-form";
+import { EnrichButton } from "@/components/dashboard/enrich-button";
 
 const statusColors: Record<string, string> = {
   NEW: "bg-blue-100 text-blue-800",
@@ -132,6 +133,7 @@ export default async function LeadDetailPage({ params }: Props) {
             </a>
           </Button>
         )}
+        <EnrichButton leadId={lead.id} hasWebsite={!!lead.website} />
         <div className="ml-auto">
           <LeadStatusSelect id={lead.id} currentStatus={lead.status} />
         </div>
