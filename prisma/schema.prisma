@@ -105,6 +105,12 @@ model Lead {
   currentBookingTool String?
   websiteAge         Int?    // years
 
+  // Enrichment Data (from website scraping + LLM)
+  servicesOffered    String?  @db.Text  // JSON array of services
+  pricingInfo        String?  @db.Text  // JSON pricing data
+  businessDescription String? @db.Text  // LLM-extracted description
+  socialLinks        String?  @db.Text  // JSON social media links
+
   // Scoring
   tier            LeadTier   @default(TIER_4)
   score           Int        @default(0)  // 0-100

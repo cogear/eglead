@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { enrichLead, EnrichmentResult } from "@/actions/enrich";
 import { toast } from "sonner";
-import { Loader2, Sparkles, Check, AlertCircle } from "lucide-react";
+import { Loader2, Sparkles, Check, AlertCircle, DollarSign, Briefcase } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -57,17 +57,24 @@ export function EnrichButton({ leadId, hasWebsite }: Props) {
         ) : (
           <Sparkles className="mr-2 h-4 w-4" />
         )}
-        Enrich Data
+        {isPending ? "Analyzing..." : "Enrich Data"}
       </Button>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Enrichment Results</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              Enrichment Results
+              {result?.data?.llmExtracted && (
+                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
+                  AI Enhanced
+                </span>
+              )}
+            </DialogTitle>
           </DialogHeader>
 
           {result?.success && result.data && (
-            <div className="space-y-4">
+            <div className="space-y-6">
               {/* Booking Software Status */}
               <div className={`p-4 rounded-lg ${
                 result.data.hasBookingSoftware
@@ -91,17 +98,80 @@ export function EnrichButton({ leadId, hasWebsite }: Props) {
               {/* Description */}
               {result.data.description && (
                 <div>
-                  <h4 className="text-sm font-medium mb-1">Description</h4>
-                  <p className="text-sm text-muted-foreground">
+                  <h4 className="text-sm font-medium mb-2">Business Description</h4>
+                  <p className="text-sm text-muted-foreground bg-gray-50 p-3 rounded">
                     {result.data.description}
                   </p>
+                </div>
+              )}
+
+              {/* Services */}
+              {result.data.services.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                    <Briefcase className="h-4 w-4" />
+                    Services Offered ({result.data.services.length})
+                  </h4>
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="grid gap-2">
+                      {result.data.services.map((service, i) => (
+                        <div key={i} className="flex justify-between items-start border-b border-gray-200 last:border-0 pb-2 last:pb-0">
+                          <div>
+                            <span className="font-medium text-sm">{service.name}</span>
+                            {service.description && (
+                              <p className="text-xs text-muted-foreground">{service.description}</p>
+                            )}
+                            {service.duration && (
+                              <span className="text-xs text-muted-foreground">({service.duration})</span>
+                            )}
+                          </div>
+                          {service.price && (
+                            <span className="text-sm font-medium text-green-600">{service.price}</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Pricing */}
+              {result.data.pricing.hasPublicPricing && result.data.pricing.items.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    Pricing Information
+                    {result.data.pricing.priceRange && (
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                        {result.data.pricing.priceRange}
+                      </span>
+                    )}
+                  </h4>
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left py-1 font-medium">Service</th>
+                          <th className="text-right py-1 font-medium">Price</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {result.data.pricing.items.map((item, i) => (
+                          <tr key={i} className="border-b last:border-0">
+                            <td className="py-1">{item.service}</td>
+                            <td className="py-1 text-right text-green-600 font-medium">{item.price}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
 
               {/* Tech Stack */}
               {result.data.techStack.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-medium mb-1">Tech Stack</h4>
+                  <h4 className="text-sm font-medium mb-2">Tech Stack</h4>
                   <div className="flex flex-wrap gap-1">
                     {result.data.techStack.map((tech) => (
                       <span
@@ -118,7 +188,7 @@ export function EnrichButton({ leadId, hasWebsite }: Props) {
               {/* Social Links */}
               {Object.keys(result.data.socialLinks).length > 0 && (
                 <div>
-                  <h4 className="text-sm font-medium mb-1">Social Media</h4>
+                  <h4 className="text-sm font-medium mb-2">Social Media</h4>
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(result.data.socialLinks).map(([platform, url]) => (
                       <a
@@ -126,7 +196,7 @@ export function EnrichButton({ leadId, hasWebsite }: Props) {
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded hover:bg-blue-200"
+                        className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded hover:bg-blue-200 capitalize"
                       >
                         {platform}
                       </a>
@@ -135,26 +205,14 @@ export function EnrichButton({ leadId, hasWebsite }: Props) {
                 </div>
               )}
 
-              {/* Services */}
-              {result.data.services.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-medium mb-1">Services Found</h4>
-                  <ul className="text-sm text-muted-foreground list-disc list-inside">
-                    {result.data.services.map((service, i) => (
-                      <li key={i}>{service}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
               {/* Logo */}
               {result.data.logo && (
                 <div>
-                  <h4 className="text-sm font-medium mb-1">Logo</h4>
+                  <h4 className="text-sm font-medium mb-2">Logo</h4>
                   <img
                     src={result.data.logo}
                     alt="Business logo"
-                    className="max-h-20 object-contain"
+                    className="max-h-16 object-contain"
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = "none";
                     }}
